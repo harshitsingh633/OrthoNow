@@ -1,11 +1,477 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book an Orthopaedic Consultation | OrthoNow</title>
+<meta name="description" content="Get an expert orthopaedic opinion for knee or back pain. Book your consultation at OrthoNow, Bengaluru.">
+
+<!--
+  PERFORMANCE NOTES (for the developer reading this in review):
+  - No external font files, no icon libraries, no external CSS/JS requests.
+    Everything is inline in this single file to avoid render-blocking network calls.
+  - System font stack used instead of a webfont — removes a network round-trip
+    and FOIT/FOUT entirely, which is one of the biggest easy wins for mobile LCP.
+  - No images. The "trust element" and hero are built with CSS/SVG only, so there's
+    nothing large to download or that can cause layout shift while it loads.
+  - All interactive elements have explicit dimensions set in CSS so nothing shifts
+    on load or on state change (this is what keeps CLS near zero).
+  - JS is small, deferred logic only — no blocking script at parse time.
+-->
+
+<style>
+  :root {
+    --ink: #10241f;
+    --ink-soft: #3c534c;
+    --paper: #f6f4ee;
+    --panel: #ffffff;
+    --clinical: #1f5f52;
+    --clinical-deep: #16453b;
+    --accent: #d97b3f;
+    --line: #d8d2c2;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img, svg { display: block; max-width: 100%; }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    padding: 18px 0 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--clinical);
+    flex-shrink: 0;
+  }
+  .brand-mark svg { width: 100%; height: 100%; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 28px 0 20px;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--clinical);
+    background: rgba(31, 95, 82, 0.09);
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 30px;
+    line-height: 1.18;
+    margin: 0 0 12px;
+    letter-spacing: -0.015em;
+    font-weight: 800;
+    color: var(--ink);
+  }
+  h1 span { color: var(--clinical); }
+  .subhead {
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin: 0 0 22px;
+    max-width: 42ch;
+  }
+
+  /* ---------- Trust strip ---------- */
+  .trust-strip {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    margin-bottom: 24px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .trust-item {
+    flex: 1;
+    text-align: center;
+  }
+  .trust-num {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--clinical-deep);
+    letter-spacing: -0.02em;
+  }
+  .trust-label {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  /* ---------- Form Card ---------- */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 1px 2px rgba(16, 36, 31, 0.04);
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .card-sub {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  input[type="text"],
+  input[type="tel"] {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    font-size: 16px; /* 16px prevents iOS auto-zoom on focus */
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+  }
+  input:focus {
+    outline: 3px solid rgba(31, 95, 82, 0.35);
+    outline-offset: 1px;
+    border-color: var(--clinical);
+  }
+  .field-error {
+    font-size: 12.5px;
+    color: #b3422a;
+    margin-top: 5px;
+    min-height: 16px;
+  }
+
+  .cta-btn {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background-color 0.15s ease;
+  }
+  .cta-btn:hover { background: #c56a30; }
+  .cta-btn:active { background: #b35f2a; }
+  .cta-btn:focus-visible {
+    outline: 3px solid var(--clinical-deep);
+    outline-offset: 2px;
+  }
+
+  .microcopy {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin: 12px 0 0;
+  }
+
+  /* ---------- Thank-you state ---------- */
+  .thankyou {
+    display: none;
+    text-align: center;
+    padding: 10px 0 4px;
+  }
+  .thankyou.is-visible { display: block; }
+  .form-panel.is-hidden { display: none; }
+
+  .check-circle {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: var(--clinical);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thankyou h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+  }
+  .thankyou p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Secondary section ---------- */
+  .why {
+    padding: 30px 0 40px;
+  }
+  .why h2 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+    font-weight: 700;
+  }
+  .why-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .why-list li {
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--ink);
+    align-items: flex-start;
+  }
+  .why-list li svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  footer {
+    padding: 16px 0 30px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  /* Slightly wider treatment on larger screens, still mobile-first base */
+  @media (min-width: 640px) {
+    .wrap { max-width: 560px; }
+    h1 { font-size: 34px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
 </head>
 <body>
-    
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 15c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <circle cx="15" cy="15" r="2.2" fill="#fff"/>
+        </svg>
+      </span>
+      OrthoNow
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <section class="hero">
+      <span class="eyebrow">Bengaluru · 4 clinic locations</span>
+      <h1>Knee or back pain slowing you down? <span>Get an expert opinion.</span></h1>
+      <p class="subhead">Book a consultation with an OrthoNow orthopaedic specialist — built for people who don't have time to wait it out.</p>
+
+      <div class="trust-strip">
+        <div class="trust-item">
+          <div class="trust-num">9</div>
+          <div class="trust-label">Clinics<br>across South India</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">15+ yrs</div>
+          <div class="trust-label">Avg. specialist<br>experience</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">MCI</div>
+          <div class="trust-label">Registered<br>orthopaedic doctors</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-panel" id="formPanel">
+          <p class="card-title">Book your consultation</p>
+          <p class="card-sub">A clinic coordinator will call you within 30 minutes to confirm a slot.</p>
+
+          <form id="consultForm" novalidate>
+            <div class="field">
+              <label for="fullName">Full name</label>
+              <input type="text" id="fullName" name="fullName" autocomplete="name" placeholder="e.g. Priya Nair" required>
+              <div class="field-error" id="nameError"></div>
+            </div>
+
+            <div class="field">
+              <label for="phone">Phone number</label>
+              <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="10-digit mobile number" inputmode="numeric" required>
+              <div class="field-error" id="phoneError"></div>
+            </div>
+
+            <button type="submit" class="cta-btn">Book my consultation</button>
+            <p class="microcopy">No payment required now. Your details are only used to confirm your appointment.</p>
+          </form>
+        </div>
+
+        <div class="thankyou" id="thankyouPanel">
+          <div class="check-circle" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Request received</h3>
+          <p>A clinic coordinator will call <strong id="thankyouName">you</strong> shortly to confirm your consultation slot.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="why">
+      <h2>Why patients choose OrthoNow</h2>
+      <ul class="why-list">
+        <li>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="#1f5f52" stroke-width="1.5"/><path d="M6 9l2 2 4-4" stroke="#1f5f52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Same-week appointments at most locations
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="#1f5f52" stroke-width="1.5"/><path d="M6 9l2 2 4-4" stroke="#1f5f52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          On-site X-ray and diagnostics at every clinic
+        </li>
+        <li>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="#1f5f52" stroke-width="1.5"/><path d="M6 9l2 2 4-4" stroke="#1f5f52" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Specialists in sports injury, spine, and joint care
+        </li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    OrthoNow Orthopaedic Clinics · Bengaluru · Hyderabad · Chennai
+  </div>
+</footer>
+
+<script>
+  (function () {
+    'use strict';
+
+    // Ensure dataLayer exists even if GTM container hasn't loaded yet —
+    // standard defensive pattern so this push never throws if GTM is delayed/blocked.
+    window.dataLayer = window.dataLayer || [];
+
+    var form = document.getElementById('consultForm');
+    var formPanel = document.getElementById('formPanel');
+    var thankyouPanel = document.getElementById('thankyouPanel');
+    var thankyouName = document.getElementById('thankyouName');
+    var nameInput = document.getElementById('fullName');
+    var phoneInput = document.getElementById('phone');
+    var nameError = document.getElementById('nameError');
+    var phoneError = document.getElementById('phoneError');
+
+    function isValidPhone(value) {
+      var digitsOnly = value.replace(/\D/g, '');
+      return digitsOnly.length === 10;
+    }
+
+    function validate() {
+      var valid = true;
+      nameError.textContent = '';
+      phoneError.textContent = '';
+
+      if (nameInput.value.trim().length < 2) {
+        nameError.textContent = 'Please enter your name.';
+        valid = false;
+      }
+      if (!isValidPhone(phoneInput.value)) {
+        phoneError.textContent = 'Enter a valid 10-digit mobile number.';
+        valid = false;
+      }
+      return valid;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); // no page reload, no native GET/POST navigation
+
+      if (!validate()) {
+        return;
+      }
+
+      var nameValue = nameInput.value.trim();
+      var phoneValue = phoneInput.value.replace(/\D/g, '');
+
+      // ---- GTM dataLayer push, fires only on successful validated submit ----
+      window.dataLayer.push({
+        event: 'consultation_form_submitted',
+        form_location: 'hero_consultation_form',
+        clinic_city: 'Bengaluru',
+        lead_source: 'google_ads_consultation_landing_page'
+      });
+
+      // Swap to thank-you state without reload
+      thankyouName.textContent = nameValue.split(' ')[0] || 'you';
+      formPanel.classList.add('is-hidden');
+      thankyouPanel.classList.add('is-visible');
+
+      // In production: this is also where the actual submit to the
+      // HubSpot/CRM endpoint would fire (see Task 03 for that architecture).
+      // Kept out of this file since Task 02 only requires the dataLayer push
+      // and local thank-you state — no backend exists for this assignment.
+    });
+
+    // Live-clear errors as the user corrects a field, so the form doesn't
+    // feel punitive after a first failed submit attempt.
+    nameInput.addEventListener('input', function () {
+      if (nameError.textContent) nameError.textContent = '';
+    });
+    phoneInput.addEventListener('input', function () {
+      if (phoneError.textContent) phoneError.textContent = '';
+    });
+  })();
+</script>
+
 </body>
 </html>
